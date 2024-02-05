@@ -8,12 +8,12 @@ const searchAPIKey = "AIzaSyBVd0dQsieIxGR6k9rP5cqfMuiWWRrZ3Fc";
 const cx = "31595be04bb5e4589"; // Custom Search Engine ID
 const notion = new Client({ auth: process.env.NOTION_KEY });
 
-const pageLink = prompt("What is the Notion database page URL? ");
+let pageLink = prompt("What is the Notion database page URL? ");
 
 getURL(pageLink);
 
 async function getURL(pageLink) {
-  const pageId = pageLink.split("/")[3].split("?")[0].split("-").pop();
+  const pageId = pageLink?.split("/")[3]?.split("?")[0]?.split("-")?.pop();
   const response = await notion.pages.retrieve({ page_id: pageId });
   const url = response.properties.Link.url;
 
