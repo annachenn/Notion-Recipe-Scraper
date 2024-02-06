@@ -1,5 +1,4 @@
 require("dotenv").config();
-const prompt = require("prompt-sync")();
 const axios = require("axios");
 const cheerio = require("cheerio");
 const { Client } = require("@notionhq/client");
@@ -7,21 +6,36 @@ const { Client } = require("@notionhq/client");
 const searchAPIKey = "AIzaSyBVd0dQsieIxGR6k9rP5cqfMuiWWRrZ3Fc";
 const cx = "31595be04bb5e4589"; // Custom Search Engine ID
 const notion = new Client({ auth: process.env.NOTION_KEY });
+const databaseId = "3215907d9fe3432e90efbd6e7e0f7941";
 
-let pageLink = prompt("What is the Notion database page URL? ");
+getDatabaseItem();
 
-getURL(pageLink);
-
-async function getURL(pageLink) {
-  const pageId = pageLink?.split("/")[3]?.split("?")[0]?.split("-")?.pop();
-  const response = await notion.pages.retrieve({ page_id: pageId });
-  const url = response.properties.Link.url;
-
+async function getDatabaseItem() {
+  // Looks for the last database item that had its link edited
+  const response = await notion.databases.query({
+    database_id: databaseId,
+    filter: {
+      property: "Link",
+      url: {
+        is_not_empty: true,
+      },
+    },
+    sorts: [
+      {
+        timestamp: "last_edited_time",
+        direction: "descending",
+      },
+    ],
+  });
+  const url = response.results[0].properties.Link.url;
+  const pageId = response.results[0].id;
   getRecipeData(url, pageId);
 
   try {
     if (!response)
-      throw "Invalid database page link. Are you sure the page exists?";
+      throw "Invalid database link. Are you sure the database exists?";
+    if (!pageId)
+      throw "Invalid page link. Are you sure the page exists in the database?";
     if (!url) throw "There doesn't appear to be a valid link on that page.";
   } catch (err) {
     console.log("Error: ", err);
