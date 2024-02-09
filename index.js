@@ -27,6 +27,8 @@ async function getDatabaseItem() {
       },
     ],
   });
+  console.log("Updating page: ", response.results[0]);
+
   const url = response.results[0].properties.Link.url;
   const pageId = response.results[0].id;
   getRecipeData(url, pageId);
@@ -210,9 +212,9 @@ async function searchImage(query) {
   try {
     const response = await axios.get(apiUrl);
 
-    const results = response.data.items
-      .filter((item) => item.link.endsWith(".jpg" || ".png")) // only get image files
-      .map((item) => ({
+    const results = response?.data?.items
+      ?.filter((item) => item.link.endsWith(".jpg" || ".png")) // only get image files
+      ?.map((item) => ({
         url: item.link,
         width: item.image.width,
       }));
@@ -226,6 +228,7 @@ async function searchImage(query) {
 }
 
 function getLargestImage(images) {
+  if (!images) return;
   const widths = images.map((item) => item.width);
   const widest = Math.max(...widths);
   const largestImage = images[widths.indexOf(widest)];
